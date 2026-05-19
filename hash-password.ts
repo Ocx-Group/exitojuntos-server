@@ -7,4 +7,4 @@ async function hashPassword() {
   return hashedPassword;
 }
 
-hashPassword();
+void hashPassword();

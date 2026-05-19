@@ -9,6 +9,7 @@ import { RolesModule } from './roles/roles.module';
 import { CountriesModule } from './countries/countries.module';
 import { EmailModule } from './email';
 import { LogsModule } from './logs';
+import { TestimonialsModule } from './testimonials';
 
 const envFilePath = process.env.NODE_ENV
   ? [
@@ -40,7 +41,7 @@ const envFilePath = process.env.NODE_ENV
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_DATABASE || 'exitojuntos',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV !== 'production', // Solo en desarrollo
+      synchronize: false, // Solo en desarrollo
       logging: process.env.NODE_ENV === 'development',
       ssl: {
         rejectUnauthorized: false, // DigitalOcean requiere SSL
@@ -51,6 +52,7 @@ const envFilePath = process.env.NODE_ENV
     CountriesModule,
     EmailModule,
     LogsModule,
+    TestimonialsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

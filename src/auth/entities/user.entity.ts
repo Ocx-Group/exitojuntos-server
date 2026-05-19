@@ -15,51 +15,51 @@ import { Country } from './country.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
-  id: number;
+  id!: number;
 
   @Column({ type: 'text' })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text' })
-  lastName: string;
+  lastName!: string;
 
   @Column({ type: 'text' })
-  password: string;
+  password!: string;
 
   @Index('IDX_USER_EMAIL')
   @Column({ type: 'text', unique: true })
-  email: string;
+  email!: string;
 
   @Index('IDX_USER_PHONE')
   @Column({ type: 'text', unique: true })
-  phone: string;
+  phone!: string;
 
   @Column({ type: 'text', nullable: true })
-  identification: string;
+  identification!: string;
 
   @Column({ type: 'text', nullable: true })
-  address: string;
+  address!: string;
 
   @Column({ type: 'text', nullable: true })
-  city: string;
+  city!: string;
 
   @Column({ type: 'text', nullable: true })
-  state: string;
+  state!: string;
 
   @Column({ type: 'text', nullable: true })
-  zipCode: string;
+  zipCode!: string;
 
   @Column({ type: 'bigint', nullable: true })
-  father: number;
+  father!: number;
 
   @Column({ type: 'int', nullable: true })
-  side: number;
+  side!: number;
 
   @Column({ type: 'boolean', nullable: true })
-  status: boolean;
+  status!: boolean;
 
   @Column({ type: 'text', nullable: true })
-  imageProfileUrl: string;
+  imageProfileUrl!: string;
 
   @Column({ type: 'text', nullable: true })
   verificationCode?: string;
@@ -71,25 +71,25 @@ export class User {
   resetPasswordExpires?: Date;
 
   @Column({ type: 'boolean', nullable: true })
-  termsConditions: boolean;
+  termsConditions!: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
-  birtDate: Date;
+  birtDate!: Date;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  deletedAt!: Date;
 
   @ManyToOne(() => Role, (role) => role.users, { nullable: true })
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role!: Role;
 
   @ManyToOne(() => Country, { nullable: true })
   @JoinColumn({ name: 'country_id' })
-  country: Country;
+  country!: Country;
 }

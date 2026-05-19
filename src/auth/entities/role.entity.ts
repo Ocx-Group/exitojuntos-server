@@ -12,20 +12,20 @@ import { User } from './user.entity';
 @Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
-  id: number;
+  id!: number;
 
   @Column({ type: 'text', unique: true })
-  name: string;
+  name!: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  deletedAt!: Date;
 
   @OneToMany(() => User, (user) => user.role)
-  users: User[];
+  users!: User[];
 }

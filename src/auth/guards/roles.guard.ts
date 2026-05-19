@@ -10,7 +10,7 @@ import { RequestWithUser } from '../interfaces/request-with-user.interface';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
@@ -27,14 +27,14 @@ export class RolesGuard implements CanActivate {
     const { user } = request;
 
     // Verificar si el usuario tiene un rol válido
-    if (!user || !user.role) {
+    if (!user?.role) {
       throw new ForbiddenException(
         'No tienes permisos para acceder a este recurso',
       );
     }
 
     // Verificar si el rol del usuario está en los roles requeridos
-    const hasRole = requiredRoles.some((role) => user.role === role);
+    const hasRole = requiredRoles.includes(user.role);
 
     if (!hasRole) {
       throw new ForbiddenException(

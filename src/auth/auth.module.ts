@@ -4,7 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
+import { UsersController } from './users.controller';
+import { NetworkController } from './network.controller';
 import { AuthService } from './auth.service';
+import { UsersService } from './users.service';
+import { NetworkService } from './network.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
@@ -31,8 +35,8 @@ import { EmailModule } from '../email/email.module';
     }),
     EmailModule,
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController, UsersController, NetworkController],
+  providers: [AuthService, UsersService, NetworkService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
