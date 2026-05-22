@@ -17,6 +17,8 @@ import {
 import { AuthService } from './auth.service';
 import {
   LoginDto,
+  GoogleLoginDto,
+  GoogleRegisterDto,
   RegisterDto,
   RequestPasswordResetDto,
   ResetPasswordDto,
@@ -40,7 +42,12 @@ export class AuthController {
     schema: {
       example: {
         access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-        user: { id: '1', name: 'John Doe', phone: '+573001234567' },
+        user: {
+          id: '1',
+          name: 'John Doe',
+          username: 'john.doe',
+          phone: '+573001234567',
+        },
       },
     },
   })
@@ -70,6 +77,7 @@ export class AuthController {
           name: 'John',
           lastName: 'Doe',
           email: 'john@example.com',
+          username: 'john.doe',
           phone: '+573001234567',
           status: true,
           role: { id: 2, name: 'Client' },
@@ -104,6 +112,7 @@ export class AuthController {
           name: 'John',
           lastName: 'Doe',
           email: 'john@example.com',
+          username: 'john.doe',
           phone: '+573001234567',
           identification: '1234567890',
           address: 'Calle 123 #45-67',
@@ -125,6 +134,46 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Iniciar sesión con Google' })
+  @ApiBody({ type: GoogleLoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Inicio de sesión con Google exitoso',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de Google inválido o cuenta no verificada',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No existe un usuario registrado con ese correo',
+  })
+  async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
+    return this.authService.googleLogin(googleLoginDto);
+  }
+
+  @Post('google/register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Registrar usuario con Google' })
+  @ApiBody({ type: GoogleRegisterDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Registro con Google exitoso',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de Google inválido o cuenta no verificada',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Usuario, teléfono o email duplicado',
+  })
+  async googleRegister(@Body() googleRegisterDto: GoogleRegisterDto) {
+    return this.authService.googleRegister(googleRegisterDto);
   }
 
   @Post('request-password-reset')

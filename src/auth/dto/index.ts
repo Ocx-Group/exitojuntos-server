@@ -1,4 +1,6 @@
 export * from './login.dto';
+export * from './google-login.dto';
+export * from './google-register.dto';
 export * from './register.dto';
 export * from './pagination.dto';
 export * from './unilevel-tree.dto';

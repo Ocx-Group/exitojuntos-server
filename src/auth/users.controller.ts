@@ -39,12 +39,21 @@ export class UsersController {
       example: {
         id: '1',
         name: 'John Doe',
+        username: 'john.doe',
         phone: '+573001234567',
       },
     },
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  getProfile(@GetUser() user: { id: string; name: string; phone: string }) {
+  getProfile(
+    @GetUser()
+    user: {
+      id: string;
+      name: string;
+      username: string;
+      phone: string;
+    },
+  ) {
     return user;
   }
 
@@ -93,6 +102,7 @@ export class UsersController {
             name: 'John',
             lastName: 'Doe',
             email: 'john@example.com',
+            username: 'john.doe',
             phone: '+573001234567',
             identification: '1234567890',
             address: 'Calle 123 #45-67',
@@ -126,6 +136,7 @@ export class UsersController {
         id: 1,
         name: 'John',
         lastName: 'Doe',
+        username: 'john.doe',
         phone: '+573001234567',
         city: 'Bogotá',
         state: 'Cundinamarca',

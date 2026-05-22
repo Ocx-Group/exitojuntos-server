@@ -2,6 +2,7 @@ export interface WelcomeEmailData {
   name: string;
   lastName: string;
   email: string;
+  username: string;
   phone: string;
   password: string;
   verificationCode: string;
@@ -71,7 +72,8 @@ export const getWelcomeEmailTemplate = (params: WelcomeEmailData): string => {
                             
                             <!-- Important Notice -->
                             <p style="margin: 30px 0; padding: 20px; color: #ffffff; font-size: 14px; line-height: 1.6; border: 1px solid #d4af37; border-left: 4px solid #d4af37;">
-                                <strong style="color: #d4af37;">📱 Tus credenciales:</strong><br><br>
+                                <strong style="color: #d4af37;">Tus credenciales:</strong><br><br>
+                                <strong>Usuario:</strong> ${params.username}<br>
                                 <strong>Email:</strong> ${params.email}<br>
                                 <strong>Teléfono:</strong> ${params.phone}<br>
                                 <strong>Contraseña temporal:</strong> <span style="font-family: 'Courier New', monospace; color: #d4af37;">${params.password}</span><br><br>

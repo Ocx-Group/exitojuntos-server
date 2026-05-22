@@ -38,6 +38,18 @@ export class RegisterDto {
   email: string;
 
   @ApiProperty({
+    example: 'john.doe',
+    description: 'Nombre de usuario para iniciar sesión',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[A-Za-z0-9._-]{3,50}$/, {
+    message:
+      'El usuario debe tener entre 3 y 50 caracteres y solo puede contener letras, números, punto, guion y guion bajo',
+  })
+  username: string;
+
+  @ApiProperty({
     example: '573001234567',
     description: 'El número de teléfono del usuario (solo números)',
   })

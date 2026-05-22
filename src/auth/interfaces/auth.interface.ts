@@ -1,5 +1,6 @@
 export interface JwtPayload {
   sub: string;
+  username: string;
   phone: string;
   role: string;
 }
@@ -11,6 +12,7 @@ export interface AuthResponse {
     name: string;
     lastName?: string;
     email?: string;
+    username: string;
     phone: string;
     identification?: string;
     address?: string;

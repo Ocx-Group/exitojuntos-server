@@ -3,15 +3,16 @@ import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({
-    example: '+573001234567',
-    description: 'El número de teléfono del usuario',
+    example: 'john.doe',
+    description: 'El nombre de usuario',
   })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\+?[1-9]\d{1,14}$/, {
-    message: 'El número de teléfono debe ser válido',
+  @Matches(/^[A-Za-z0-9._-]{3,50}$/, {
+    message:
+      'El usuario debe tener entre 3 y 50 caracteres y solo puede contener letras, números, punto, guion y guion bajo',
   })
-  phone: string;
+  username: string;
 
   @ApiProperty({
     example: 'Password123!',

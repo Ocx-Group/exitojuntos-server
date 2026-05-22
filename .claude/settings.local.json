@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prettier *)",
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const ts = require\\('typescript-eslint'\\); console.log\\(Object.keys\\(ts\\)\\); console.log\\(ts.default?.config?.toString\\(\\).slice\\(0,200\\)\\)\")",
+      "Bash(xargs grep -n \"deprecated\\\\|InfiniteDepth\")",
+      "Bash(node -e \"import\\('eslint'\\).then\\(m => console.log\\(Object.keys\\(m.default\\)\\)\\)\")",
+      "Bash(node -e \"import\\('@eslint/js'\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\)\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/@eslint/js/package.json'\\); console.log\\(pkg.version\\)\")",
+      "Bash(node -e \"import\\('eslint/config'\\).then\\(m => console.log\\(typeof m.defineConfig, Object.keys\\(m\\)\\)\\).catch\\(e => console.log\\('not found:', e.message\\)\\)\")"
+    ]
+  }
+}

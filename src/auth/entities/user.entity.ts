@@ -23,16 +23,27 @@ export class User {
   @Column({ type: 'text' })
   lastName!: string;
 
-  @Column({ type: 'text' })
-  password!: string;
+  @Column({ type: 'text', nullable: true })
+  password?: string | null;
 
   @Index('IDX_USER_EMAIL')
   @Column({ type: 'text', unique: true })
   email!: string;
 
+  @Index('IDX_USER_USERNAME')
+  @Column({ type: 'text', unique: true })
+  username!: string;
+
   @Index('IDX_USER_PHONE')
   @Column({ type: 'text', unique: true })
   phone!: string;
+
+  @Index('IDX_USER_GOOGLE_ID', { unique: true, where: 'google_id IS NOT NULL' })
+  @Column({ name: 'google_id', type: 'text', nullable: true })
+  googleId?: string | null;
+
+  @Column({ name: 'auth_provider', type: 'text', default: 'local' })
+  authProvider!: string;
 
   @Column({ type: 'text', nullable: true })
   identification!: string;
