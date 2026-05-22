@@ -1,67 +1,39 @@
-# Copia este archivo a terraform.tfvars y completa con tus valores
+# Copia este archivo como terraform.tfvars y completa con tus valores reales.
+# NUNCA subas terraform.tfvars a git (está en .gitignore).
 
-# REQUERIDO: Token de DigitalOcean (obtener en: https://cloud.digitalocean.com/account/api/tokens)
-do_token = "dop_v1_cff83c72c6f97ac11178f603360644dc495da8a295bb932ae64a0a204cebf0ff"
+# ──────────────────────────────────────────────────────────────────────────────
+# REQUERIDO
+# ──────────────────────────────────────────────────────────────────────────────
 
-# REQUERIDO: Clave SSH pública (ejecuta: cat ~/.ssh/id_rsa.pub)
-ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC... tu-clave-publica"
+# Token de DigitalOcean → https://cloud.digitalocean.com/account/api/tokens
+do_token = "dop_v1_REEMPLAZA_CON_TU_TOKEN"
 
-# REQUERIDO: Secret para JWT (genera uno seguro)
-jwt_secret = "tu-jwt-secret-muy-seguro-aqui"
+# Repositorios GitHub (el repo debe estar conectado a DigitalOcean Apps)
+# Formato: "nombre-usuario-o-org/nombre-repositorio"
+backend_github_repo  = "tu-org/exitojuntos-server"
+frontend_github_repo = "tu-org/exitojuntos"
 
-# Configuración del proyecto
-project_name = "exitojuntos"
-environment  = "production"
+# JWT
+jwt_secret = "cambia-esto-por-un-secret-seguro-de-al-menos-32-chars"
 
-# Configuración del servidor
-region       = "nyc3"  # nyc1, nyc3, sfo3, ams3, sgp1, lon1, fra1, tor1, blr1, syd1
-droplet_size = "s-1vcpu-2gb"  # s-1vcpu-1gb, s-1vcpu-2gb, s-2vcpu-2gb, s-2vcpu-4gb
+# Brevo (emails)
+brevo_api_key = "xkeysib-REEMPLAZA_CON_TU_API_KEY"
 
-# Configuración de Docker
-docker_image = "exitojuntos-server"
-docker_tag   = "latest"
+# ──────────────────────────────────────────────────────────────────────────────
+# OPCIONAL (dejar vacío si no usas S3)
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Versión de deployment (cambiar para forzar actualización del droplet)
-deployment_version = "v1.0.0"
+aws_access_key_id     = ""
+aws_secret_access_key = ""
+aws_region            = ""
+aws_bucket_name       = ""
 
-# Configuración de la aplicación
-app_port       = "3000"
-node_env       = "production"
-jwt_expires_in = "1d"
+# ──────────────────────────────────────────────────────────────────────────────
+# CONFIGURACIÓN (valores por defecto razonables para un proyecto pequeño)
+# ──────────────────────────────────────────────────────────────────────────────
 
-# ============================================
-# CONFIGURACIÓN DE BASE DE DATOS
-# ============================================
-# OPCIÓN 1: Usar base de datos existente (RECOMENDADO si ya tienes una)
-create_database = false
-database_url    = "postgresql://usuario:password@host:puerto/database"
-
-# OPCIÓN 2: Crear nueva base de datos en DigitalOcean (cuesta $15/mes adicional)
-# create_database      = true
-# postgres_version     = "16"
-# database_size        = "db-s-1vcpu-1gb"  # db-s-1vcpu-1gb, db-s-1vcpu-2gb, db-s-2vcpu-4gb
-# database_node_count  = 1
-# database_url         = ""  # Dejar vacío si create_database = true
-
-# Seguridad SSH (recomendado: especificar tu IP pública)
-allowed_ssh_ips = ["0.0.0.0/0"]  # Cambia esto por tu IP para mayor seguridad
-
-# Load Balancer (opcional, para alta disponibilidad)
-enable_load_balancer = false
-
-# Dominio (opcional)
-domain_name = ""  # Ejemplo: "midominio.com"
-subdomain   = "@"  # @ para dominio raíz, o "api" para api.midominio.com
-
-# ============================================
-# CONFIGURACIÓN DE REDIS
-# ============================================
-redis_host     = "redis"      # Nombre del contenedor Redis (por defecto "redis")
-redis_port     = "6379"       # Puerto de Redis
-redis_password = ""           # Contraseña de Redis (opcional, dejar vacío si no tiene)
-
-# ============================================
-# CONFIGURACIÓN DE EMAIL (BREVO)
-# ============================================
-# REQUERIDO: API Key de Brevo (obtener en: https://app.brevo.com/settings/keys/api)
-brevo_api_key = "tu-brevo-api-key-aqui"
+app_name              = "exitojuntos"
+region                = "nyc"           # nyc, fra, ams, sgp, syd, lon, tor, blr, sfo
+backend_instance_size = "apps-s-1vcpu-0.5gb"  # ~$5/mes
+db_size               = "db-s-1vcpu-1gb"      # ~$15/mes PG + ~$15/mes Redis
+jwt_expires_in        = "1d"

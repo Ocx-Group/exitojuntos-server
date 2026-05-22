@@ -13,162 +13,87 @@ provider "digitalocean" {
   token = var.do_token
 }
 
-# SSH Key para acceder al Droplet
-resource "digitalocean_ssh_key" "default" {
-  name       = "${var.project_name}-key"
-  public_key = var.ssh_public_key
-}
+resource "digitalocean_app" "exitojuntos" {
+  spec {
+    name   = var.app_name
+    region = var.region
 
-# Droplet (Servidor Virtual)
-resource "digitalocean_droplet" "app" {
-  image    = "docker-20-04"
-  name     = "${var.project_name}-server"
-  region   = var.region
-  size     = var.droplet_size
-  ssh_keys = [digitalocean_ssh_key.default.id]
+    # ── Backend: NestJS ──────────────────────────────────────────────────────
+    service {
+      name               = "api"
+      instance_count     = 1
+      instance_size_slug = var.backend_instance_size
 
-  user_data = templatefile("${path.module}/cloud-init.yml", {
-    do_token       = var.do_token
-    docker_image   = var.docker_image
-    docker_tag     = var.docker_tag
-    app_port       = var.app_port
-    db_host        = var.db_host
-    db_port        = var.db_port
-    db_username    = var.db_username
-    db_password    = var.db_password
-    db_database    = var.db_database
-    jwt_secret     = var.jwt_secret
-    jwt_expires_in = var.jwt_expires_in
-    node_env       = var.node_env
-    redis_host     = var.redis_host
-    redis_port     = var.redis_port
-    redis_password = var.redis_password
-    brevo_api_key  = var.brevo_api_key
-  })
+      github {
+        repo           = var.backend_github_repo
+        branch         = "main"
+        deploy_on_push = true
+      }
 
-  tags = [var.environment, "version-${replace(var.deployment_version, ".", "-")}"]
+      dockerfile_path = "Dockerfile"
+      http_port       = 3000
 
-  lifecycle {
-    create_before_destroy = true
-    replace_triggered_by = [
-      null_resource.deployment_trigger
-    ]
+      routes {
+        path                 = "/api"
+        preserve_path_prefix = true
+      }
+
+      health_check {
+        http_path             = "/api/docs"
+        initial_delay_seconds = 60
+        period_seconds        = 30
+        failure_threshold     = 3
+      }
+
+      # Runtime
+      env { key = "NODE_ENV"       value = "production" scope = "RUN_TIME" }
+      env { key = "PORT"           value = "3000"       scope = "RUN_TIME" }
+      env { key = "FRONTEND_URL"   value = "$${APP_URL}" scope = "RUN_TIME" }
+
+      # PostgreSQL – inyectado desde el componente "db"
+      env { key = "DB_HOST"     value = "$${db.HOSTNAME}" scope = "RUN_TIME" type = "SECRET" }
+      env { key = "DB_PORT"     value = "$${db.PORT}"     scope = "RUN_TIME" }
+      env { key = "DB_USERNAME" value = "$${db.USERNAME}" scope = "RUN_TIME" type = "SECRET" }
+      env { key = "DB_PASSWORD" value = "$${db.PASSWORD}" scope = "RUN_TIME" type = "SECRET" }
+      env { key = "DB_DATABASE" value = "$${db.DATABASE}" scope = "RUN_TIME" }
+
+      # Secrets de aplicación
+      env { key = "JWT_SECRET"            value = var.jwt_secret            scope = "RUN_TIME" type = "SECRET" }
+      env { key = "JWT_EXPIRES_IN"        value = var.jwt_expires_in        scope = "RUN_TIME" }
+      env { key = "BREVO_API_KEY"         value = var.brevo_api_key         scope = "RUN_TIME" type = "SECRET" }
+      env { key = "AWS_ACCESS_KEY_ID"     value = var.aws_access_key_id     scope = "RUN_TIME" type = "SECRET" }
+      env { key = "AWS_SECRET_ACCESS_KEY" value = var.aws_secret_access_key scope = "RUN_TIME" type = "SECRET" }
+      env { key = "AWS_REGION"            value = var.aws_region            scope = "RUN_TIME" }
+      env { key = "AWS_BUCKET_NAME"       value = var.aws_bucket_name       scope = "RUN_TIME" }
+    }
+
+    # ── Frontend: Angular SPA ─────────────────────────────────────────────────
+    # App Platform construye desde el source y sirve los archivos estáticos.
+    # deploy_on_push = true activa el redeploy automático en cada push a main.
+    static_site {
+      name = "frontend"
+
+      github {
+        repo           = var.frontend_github_repo
+        branch         = "main"
+        deploy_on_push = true
+      }
+
+      build_command     = "npm run build:prod"
+      output_dir        = "dist/main"
+      environment_slug  = "node-js"
+      catchall_document = "index.html"
+    }
+
+    # ── PostgreSQL administrado ───────────────────────────────────────────────
+    database {
+      name      = "db"
+      engine    = "PG"
+      version   = "16"
+      size      = var.db_size
+      num_nodes = 1
+      production = false
+    }
+
   }
-}
-
-# Resource para forzar recreación cuando cambie deployment_version
-resource "null_resource" "deployment_trigger" {
-  triggers = {
-    deployment_version = var.deployment_version
-    docker_tag         = var.docker_tag
-  }
-}
-
-# Base de datos PostgreSQL administrada (OPCIONAL)
-resource "digitalocean_database_cluster" "postgres" {
-  count = var.create_database ? 1 : 0
-
-  name       = "${var.project_name}-db"
-  engine     = "pg"
-  version    = var.postgres_version
-  size       = var.database_size
-  region     = var.region
-  node_count = var.database_node_count
-
-  tags = [var.environment]
-}
-
-# Firewall para el Droplet
-resource "digitalocean_firewall" "app" {
-  name = "${var.project_name}-firewall"
-
-  droplet_ids = [digitalocean_droplet.app.id]
-
-  # Permitir SSH
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = "22"
-    source_addresses = var.allowed_ssh_ips
-  }
-
-  # Permitir HTTP
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = "80"
-    source_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  # Permitir HTTPS
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = "443"
-    source_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  # Permitir puerto de la aplicación
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = var.app_port
-    source_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  # Permitir todo el tráfico saliente
-  outbound_rule {
-    protocol              = "tcp"
-    port_range            = "1-65535"
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  outbound_rule {
-    protocol              = "udp"
-    port_range            = "1-65535"
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  outbound_rule {
-    protocol              = "icmp"
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
-}
-
-# Load Balancer (opcional, para alta disponibilidad)
-resource "digitalocean_loadbalancer" "app" {
-  count = var.enable_load_balancer ? 1 : 0
-
-  name   = "${var.project_name}-lb"
-  region = var.region
-
-  forwarding_rule {
-    entry_port     = 80
-    entry_protocol = "http"
-
-    target_port     = var.app_port
-    target_protocol = "http"
-  }
-
-  healthcheck {
-    port     = var.app_port
-    protocol = "http"
-    path     = "/api/docs"
-  }
-
-  droplet_ids = [digitalocean_droplet.app.id]
-}
-
-# Domain (opcional)
-resource "digitalocean_domain" "default" {
-  count = var.domain_name != "" ? 1 : 0
-
-  name = var.domain_name
-}
-
-# DNS Record apuntando al Droplet o Load Balancer
-resource "digitalocean_record" "app" {
-  count = var.domain_name != "" ? 1 : 0
-
-  domain = digitalocean_domain.default[0].name
-  type   = "A"
-  name   = var.subdomain
-  value  = var.enable_load_balancer ? digitalocean_loadbalancer.app[0].ip : digitalocean_droplet.app.ipv4_address
-  ttl    = 300
 }
