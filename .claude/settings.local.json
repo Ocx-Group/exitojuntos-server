@@ -8,7 +8,11 @@
       "Bash(node -e \"import\\('eslint'\\).then\\(m => console.log\\(Object.keys\\(m.default\\)\\)\\)\")",
       "Bash(node -e \"import\\('@eslint/js'\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\)\")",
       "Bash(node -e \"const pkg = require\\('./node_modules/@eslint/js/package.json'\\); console.log\\(pkg.version\\)\")",
-      "Bash(node -e \"import\\('eslint/config'\\).then\\(m => console.log\\(typeof m.defineConfig, Object.keys\\(m\\)\\)\\).catch\\(e => console.log\\('not found:', e.message\\)\\)\")"
+      "Bash(node -e \"import\\('eslint/config'\\).then\\(m => console.log\\(typeof m.defineConfig, Object.keys\\(m\\)\\)\\).catch\\(e => console.log\\('not found:', e.message\\)\\)\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Ocx-Group\\\\Exito J\\\\exitojuntos-server\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(xargs grep -l \"multer\\\\|upload\\\\|file\\\\|s3\\\\|storage\")",
+      "Bash(npm install *)"
     ]
   }
 }

@@ -10,6 +10,7 @@ import { CountriesModule } from './countries/countries.module';
 import { EmailModule } from './email';
 import { LogsModule } from './logs';
 import { TestimonialsModule } from './testimonials';
+import { StorageModule } from './storage/storage.module';
 
 const envFilePath = process.env.NODE_ENV
   ? [
@@ -53,6 +54,7 @@ const envFilePath = process.env.NODE_ENV
     EmailModule,
     LogsModule,
     TestimonialsModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
