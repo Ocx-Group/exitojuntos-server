@@ -81,3 +81,9 @@ variable "aws_bucket_name" {
   type        = string
   default     = ""
 }
+
+variable "domain" {
+  description = "Dominio principal (ej: exitojuntos.com)"
+  type        = string
+  default     = ""
+}

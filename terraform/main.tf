@@ -18,6 +18,16 @@ resource "digitalocean_app" "exitojuntos" {
     name   = var.app_name
     region = var.region
 
+    domain {
+      name = var.domain
+      type = "PRIMARY"
+    }
+
+    domain {
+      name = "www.${var.domain}"
+      type = "ALIAS"
+    }
+
     # ── Backend: NestJS ──────────────────────────────────────────────────────
     service {
       name               = "api"
