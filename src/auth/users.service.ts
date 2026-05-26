@@ -86,6 +86,40 @@ export class UsersService {
     return user;
   }
 
+  async findByUsername(username: string) {
+    const normalized = username?.trim().toLowerCase();
+
+    const user = await this.userRepository.findOne({
+      where: { username: normalized },
+      relations: ['role'],
+      select: {
+        id: true,
+        name: true,
+        lastName: true,
+        address: true,
+        identification: true,
+        username: true,
+        phone: true,
+        email: true,
+        city: true,
+        state: true,
+        imageProfileUrl: true,
+        father: true,
+        side: true,
+        termsConditions: true,
+        role: { id: true, name: true },
+        birtDate: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    return user;
+  }
+
   async updateProfile(
     userId: string,
     updateProfileDto: UpdateProfileDto,

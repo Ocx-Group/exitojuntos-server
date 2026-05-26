@@ -150,4 +150,28 @@ export class UsersController {
   findByPhone(@Param('phone') phone: string) {
     return this.usersService.findByPhone(phone);
   }
+
+  @Get('get_user_username/:username')
+  @ApiOperation({ summary: 'Buscar usuario por nombre de usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario encontrado exitosamente',
+    schema: {
+      example: {
+        id: 1,
+        name: 'John',
+        lastName: 'Doe',
+        username: 'john.doe',
+        phone: '+573001234567',
+        city: 'Bogotá',
+        state: 'Cundinamarca',
+        imageProfileUrl: 'https://example.com/profile.jpg',
+        role: { id: 1, name: 'Admin' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  findByUsername(@Param('username') username: string) {
+    return this.usersService.findByUsername(username);
+  }
 }
