@@ -1,16 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
+import { ShipmentStatus } from '../entities/shipment.entity';
+
+const SHIPMENT_STATUSES: ShipmentStatus[] = [
+  'pending',
+  'picked_up',
+  'in_transit',
+  'out_for_delivery',
+  'delivered',
+  'failed',
+  'returned',
+];
 
 export class AddTrackingEventDto {
-  @ApiProperty({ example: 'in_transit' })
-  @IsString()
-  @MaxLength(30)
-  status!: string;
+  @ApiProperty({ enum: SHIPMENT_STATUSES, example: 'in_transit' })
+  @IsIn(SHIPMENT_STATUSES)
+  status!: ShipmentStatus;
 
   @ApiPropertyOptional({ example: 'Bogotá, Colombia' })
   @IsOptional()
   @IsString()
-  @MaxLength(255)
   location?: string;
 
   @ApiPropertyOptional({ example: 'Paquete llegó al centro de distribución' })

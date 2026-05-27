@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateShipmentDto {
   @ApiProperty({ example: 1 })
@@ -21,6 +28,6 @@ export class CreateShipmentDto {
 
   @ApiPropertyOptional({ example: '2025-06-01' })
   @IsOptional()
-  @IsString()
+  @IsDateString()
   estimatedDelivery?: string;
 }

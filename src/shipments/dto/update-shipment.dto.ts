@@ -1,10 +1,34 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateShipmentDto {
-  @ApiPropertyOptional({ enum: ['pending', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed', 'returned'] })
+  @ApiPropertyOptional({
+    enum: [
+      'pending',
+      'picked_up',
+      'in_transit',
+      'out_for_delivery',
+      'delivered',
+      'failed',
+      'returned',
+    ],
+  })
   @IsOptional()
-  @IsIn(['pending', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed', 'returned'])
+  @IsIn([
+    'pending',
+    'picked_up',
+    'in_transit',
+    'out_for_delivery',
+    'delivered',
+    'failed',
+    'returned',
+  ])
   status?: string;
 
   @ApiPropertyOptional({ example: 'DHL' })
@@ -21,6 +45,6 @@ export class UpdateShipmentDto {
 
   @ApiPropertyOptional({ example: '2025-06-01' })
   @IsOptional()
-  @IsString()
+  @IsDateString()
   estimatedDelivery?: string;
 }

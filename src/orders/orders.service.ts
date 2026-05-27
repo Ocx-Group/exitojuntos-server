@@ -1,10 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
 import { CartService } from '../cart/cart.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
-import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
+import {
+  getPagination,
+  toPaginatedResult,
+} from '../common/utils/pagination.util';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderDetail } from './entities/order-detail.entity';
@@ -12,12 +19,12 @@ import { Order, OrderStatus } from './entities/order.entity';
 
 const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending_payment: ['paid', 'cancelled'],
-  paid:            ['processing', 'cancelled', 'refunded'],
-  processing:      ['shipped', 'cancelled'],
-  shipped:         ['delivered'],
-  delivered:       ['refunded'],
-  cancelled:       [],
-  refunded:        [],
+  paid: ['processing', 'cancelled', 'refunded'],
+  processing: ['shipped', 'cancelled'],
+  shipped: ['delivered'],
+  delivered: ['refunded'],
+  cancelled: [],
+  refunded: [],
 };
 
 @Injectable()
@@ -139,9 +146,7 @@ export class OrdersService {
     return toPaginatedResult(orders, total, page, limit);
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<Order>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Order>> {
     const { page, limit, skip } = getPagination(paginationDto);
     const [orders, total] = await this.orderRepository.findAndCount({
       where: { deletedAt: IsNull() },
@@ -155,7 +160,7 @@ export class OrdersService {
   }
 
   async findOne(id: number, userId?: number): Promise<Order> {
-    const where: any = { id, deletedAt: IsNull() };
+    const where: FindOptionsWhere<Order> = { id, deletedAt: IsNull() };
     if (userId !== undefined) where.userId = userId;
     const order = await this.orderRepository.findOne({
       where,

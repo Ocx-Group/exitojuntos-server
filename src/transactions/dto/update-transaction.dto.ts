@@ -1,12 +1,34 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import type { TransactionStatus } from '../entities/transaction.entity';
 
 export class UpdateTransactionDto {
-  @ApiPropertyOptional({ enum: ['pending', 'awaiting_confirmations', 'approved', 'failed', 'cancelled'] })
+  @ApiPropertyOptional({
+    enum: [
+      'pending',
+      'awaiting_confirmations',
+      'approved',
+      'failed',
+      'cancelled',
+    ],
+  })
   @IsOptional()
-  @IsIn(['pending', 'awaiting_confirmations', 'approved', 'failed', 'cancelled'])
+  @IsIn([
+    'pending',
+    'awaiting_confirmations',
+    'approved',
+    'failed',
+    'cancelled',
+  ])
   status?: TransactionStatus;
 
   @ApiPropertyOptional({ example: 'abc123hash' })
@@ -23,6 +45,8 @@ export class UpdateTransactionDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  @MaxLength(1000)
   failureReason?: string;
 
   @ApiPropertyOptional()

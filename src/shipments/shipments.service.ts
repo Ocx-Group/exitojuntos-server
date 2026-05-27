@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
-import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
+import {
+  getPagination,
+  toPaginatedResult,
+} from '../common/utils/pagination.util';
 import { OrdersService } from '../orders/orders.service';
 import { AddTrackingEventDto } from './dto/add-tracking-event.dto';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
@@ -64,7 +67,10 @@ export class ShipmentsService {
       where: { orderId },
       relations: ['trackingEvents'],
     });
-    if (!shipment) throw new NotFoundException(`No se encontró envío para la orden ${orderId}`);
+    if (!shipment)
+      throw new NotFoundException(
+        `No se encontró envío para la orden ${orderId}`,
+      );
     return shipment;
   }
 
@@ -75,7 +81,10 @@ export class ShipmentsService {
     return this.shipmentRepository.save(shipment);
   }
 
-  async addTrackingEvent(id: number, dto: AddTrackingEventDto): Promise<Shipment> {
+  async addTrackingEvent(
+    id: number,
+    dto: AddTrackingEventDto,
+  ): Promise<Shipment> {
     const shipment = await this.findOne(id);
     const event = this.trackingRepository.create({
       shipmentId: shipment.id,
@@ -83,7 +92,8 @@ export class ShipmentsService {
       location: dto.location,
       description: dto.description,
     });
-    await this.trackingRepository.save(event);
-    return this.findOne(id);
+    const savedEvent = await this.trackingRepository.save(event);
+    shipment.trackingEvents.unshift(savedEvent);
+    return shipment;
   }
 }
