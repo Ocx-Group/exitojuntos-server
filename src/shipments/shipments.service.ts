@@ -51,11 +51,13 @@ export class ShipmentsService {
   }
 
   async findOne(id: number): Promise<Shipment> {
-    const shipment = await this.shipmentRepository.findOne({
-      where: { id },
-      relations: ['order', 'trackingEvents'],
-      order: { trackingEvents: { occurredAt: 'DESC' } } as any,
-    });
+    const shipment = await this.shipmentRepository
+      .createQueryBuilder('shipment')
+      .leftJoinAndSelect('shipment.order', 'order')
+      .leftJoinAndSelect('shipment.trackingEvents', 'trackingEvents')
+      .where('shipment.id = :id', { id })
+      .orderBy('trackingEvents.occurredAt', 'DESC')
+      .getOne();
     if (!shipment) throw new NotFoundException(`Envío ${id} no encontrado`);
     return shipment;
   }

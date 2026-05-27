@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, IsNull, Repository } from 'typeorm';
 import { CartService } from '../cart/cart.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
@@ -35,6 +35,7 @@ export class OrdersService {
     @InjectRepository(OrderDetail)
     private readonly detailRepository: Repository<OrderDetail>,
     private readonly cartService: CartService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createFromCart(userId: number, dto: CreateOrderDto): Promise<Order> {
@@ -81,41 +82,56 @@ export class OrdersService {
       orderDetails.reduce((sum, detail) => sum + detail.lineTax, 0),
     );
 
-    const order = this.orderRepository.create({
-      userId,
-      currency: dto.currency ?? 'USD',
-      subtotal,
-      taxAmount,
-      discountAmount,
-      shippingCost: dto.shippingCost ?? 0,
-      notes: dto.notes,
-      shippingEmail: dto.shippingEmail,
-      shippingName: dto.shippingName,
-      shippingAddress: dto.shippingAddress,
-      shippingCity: dto.shippingCity,
-      shippingProvince: dto.shippingProvince,
-      shippingPostalCode: dto.shippingPostalCode,
-      shippingPhone: dto.shippingPhone,
-      status: 'pending_payment',
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const savedOrder = await this.orderRepository.save(order);
+    let savedOrderId: number;
+    try {
+      const order = queryRunner.manager.create(Order, {
+        userId,
+        currency: dto.currency ?? 'USD',
+        subtotal,
+        taxAmount,
+        discountAmount,
+        shippingCost: dto.shippingCost ?? 0,
+        notes: dto.notes,
+        shippingEmail: dto.shippingEmail,
+        shippingName: dto.shippingName,
+        shippingAddress: dto.shippingAddress,
+        shippingCity: dto.shippingCity,
+        shippingProvince: dto.shippingProvince,
+        shippingPostalCode: dto.shippingPostalCode,
+        shippingPhone: dto.shippingPhone,
+        status: 'pending_payment',
+      });
 
-    const details = orderDetails.map((detail) =>
-      this.detailRepository.create({
-        orderId: savedOrder.id,
-        productId: detail.productId,
-        quantity: detail.quantity,
-        unitPrice: detail.unitPrice,
-        discountPercent: detail.discountPercent,
-        taxPercent: detail.taxPercent,
-      }),
-    );
-    await this.detailRepository.save(details);
+      const savedOrder = await queryRunner.manager.save(Order, order);
+
+      const details = orderDetails.map((detail) =>
+        queryRunner.manager.create(OrderDetail, {
+          orderId: savedOrder.id,
+          productId: detail.productId,
+          quantity: detail.quantity,
+          unitPrice: detail.unitPrice,
+          discountPercent: detail.discountPercent,
+          taxPercent: detail.taxPercent,
+        }),
+      );
+      await queryRunner.manager.save(OrderDetail, details);
+
+      await queryRunner.commitTransaction();
+      savedOrderId = savedOrder.id;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
 
     await this.cartService.abandonCart(userId);
 
-    return this.findOne(savedOrder.id, userId);
+    return this.findOne(savedOrderId, userId);
   }
 
   private toNumber(value: unknown): number {
@@ -174,8 +190,7 @@ export class OrdersService {
     const order = await this.findOne(id);
     this.assertValidTransition(order.status, dto.status);
     order.status = dto.status;
-    await this.orderRepository.save(order);
-    return this.findOne(id);
+    return this.orderRepository.save(order);
   }
 
   async cancel(id: number, userId: number): Promise<Order> {

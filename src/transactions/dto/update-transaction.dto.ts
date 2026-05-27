@@ -4,6 +4,7 @@ import {
   IsIn,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   MaxLength,
@@ -63,5 +64,6 @@ export class UpdateTransactionDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsObject()
   gatewayResponse?: Record<string, unknown>;
 }

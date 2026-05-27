@@ -1,4 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
+import { Order } from './entities/order.entity';
+import { OrderDetail } from './entities/order-detail.entity';
 import { OrdersService } from './orders.service';
 
 describe('OrdersService', () => {
@@ -13,19 +15,31 @@ describe('OrdersService', () => {
   };
 
   function createService(cart: any) {
+    const managerCreate = jest.fn((_Entity: any, data: any) => data);
+    const managerSave = jest.fn(async (Entity: any, entity: any) =>
+      Entity === Order ? { ...entity, id: 10 } : entity,
+    );
+
+    const queryRunner = {
+      connect: jest.fn(async () => undefined),
+      startTransaction: jest.fn(async () => undefined),
+      commitTransaction: jest.fn(async () => undefined),
+      rollbackTransaction: jest.fn(async () => undefined),
+      release: jest.fn(async () => undefined),
+      manager: { create: managerCreate, save: managerSave },
+    };
+
+    const dataSource = { createQueryRunner: jest.fn(() => queryRunner) };
+
     const orderRepository = {
-      create: jest.fn((order) => order),
-      save: jest.fn(async (order) => ({ ...order, id: 10 })),
       findOne: jest.fn(async () => ({
         id: 10,
         userId: 1,
         details: [],
+        user: {},
       })),
     };
-    const detailRepository = {
-      create: jest.fn((detail) => detail),
-      save: jest.fn(async (details) => details),
-    };
+
     const cartService = {
       getOrCreateActiveCart: jest.fn(async () => cart),
       abandonCart: jest.fn(async () => undefined),
@@ -33,50 +47,43 @@ describe('OrdersService', () => {
 
     const service = new OrdersService(
       orderRepository as any,
-      detailRepository as any,
+      {} as any,
       cartService as any,
+      dataSource as any,
     );
 
-    return { service, orderRepository, detailRepository, cartService };
+    return { service, queryRunner, managerCreate, managerSave, cartService };
   }
 
   it('recalcula precios y totales desde el carrito y catálogo', async () => {
-    const { service, orderRepository, detailRepository, cartService } =
-      createService({
-        items: [
-          {
-            productId: 1,
-            quantity: 2,
-            unitPrice: 0.01,
-            product: {
-              price: 100,
-              state: true,
-              discountPercent: 10,
-              taxPercent: 13,
-            },
+    const { service, managerCreate, cartService } = createService({
+      items: [
+        {
+          productId: 1,
+          quantity: 2,
+          unitPrice: 0.01,
+          product: {
+            price: 100,
+            state: true,
+            discountPercent: 10,
+            taxPercent: 13,
           },
-        ],
-      });
+        },
+      ],
+    });
 
-    await service.createFromCart(
-      1,
-      {
-        ...baseDto,
-        subtotal: 0.01,
-        taxAmount: 0,
-        discountAmount: 0,
-        details: [{ productId: 1, quantity: 2, unitPrice: 0.01 }],
-      } as unknown as any,
-    );
+    await service.createFromCart(1, baseDto as any);
 
-    expect(orderRepository.create).toHaveBeenCalledWith(
+    expect(managerCreate).toHaveBeenCalledWith(
+      Order,
       expect.objectContaining({
         subtotal: 200,
         discountAmount: 20,
         taxAmount: 23.4,
       }),
     );
-    expect(detailRepository.create).toHaveBeenCalledWith(
+    expect(managerCreate).toHaveBeenCalledWith(
+      OrderDetail,
       expect.objectContaining({
         productId: 1,
         quantity: 2,
@@ -89,14 +96,11 @@ describe('OrdersService', () => {
   });
 
   it('rechaza crear una orden sin items en el carrito', async () => {
-    const { service, orderRepository, detailRepository } = createService({
-      items: [],
-    });
+    const { service, queryRunner } = createService({ items: [] });
 
-    await expect(service.createFromCart(1, baseDto)).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
-    expect(orderRepository.save).not.toHaveBeenCalled();
-    expect(detailRepository.save).not.toHaveBeenCalled();
+    await expect(
+      service.createFromCart(1, baseDto as any),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(queryRunner.startTransaction).not.toHaveBeenCalled();
   });
 });

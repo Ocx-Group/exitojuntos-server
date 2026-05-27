@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString } from 'class-validator';
-import { ShipmentStatus } from '../entities/shipment.entity';
+import type { ShipmentStatus } from '../entities/shipment.entity';
 
 const SHIPMENT_STATUSES: ShipmentStatus[] = [
   'pending',

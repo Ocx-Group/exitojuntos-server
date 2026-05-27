@@ -1,6 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import type { TransactionType } from '../entities/transaction.entity';
 
 export class CreateTransactionDto {
@@ -68,4 +76,10 @@ export class CreateTransactionDto {
   @IsString()
   @MaxLength(255)
   txHash?: string;
+
+  @ApiPropertyOptional({ example: 'crypto', default: 'crypto' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  paymentMethod?: string;
 }

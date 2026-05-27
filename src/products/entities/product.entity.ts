@@ -1,4 +1,14 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ProductCategory } from './product-category.entity';
 
 @Entity('products')
@@ -18,19 +28,32 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   image!: string | null;
 
+  @Index('idx_products_state')
   @Column({ type: 'boolean', default: true })
   state!: boolean;
 
   @Column({ type: 'boolean', default: false })
   offers!: boolean;
 
-  @Column({ name: 'tax_percent', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({
+    name: 'tax_percent',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+  })
   taxPercent!: number;
 
   @Column({ name: 'value_points', type: 'int', default: 0 })
   valuePoints!: number;
 
-  @Column({ name: 'discount_percent', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({
+    name: 'discount_percent',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+  })
   discountPercent!: number;
 
   @Index('idx_products_category')

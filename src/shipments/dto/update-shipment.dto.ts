@@ -6,30 +6,23 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import type { ShipmentStatus } from '../entities/shipment.entity';
+
+const SHIPMENT_STATUSES: ShipmentStatus[] = [
+  'pending',
+  'picked_up',
+  'in_transit',
+  'out_for_delivery',
+  'delivered',
+  'failed',
+  'returned',
+];
 
 export class UpdateShipmentDto {
-  @ApiPropertyOptional({
-    enum: [
-      'pending',
-      'picked_up',
-      'in_transit',
-      'out_for_delivery',
-      'delivered',
-      'failed',
-      'returned',
-    ],
-  })
+  @ApiPropertyOptional({ enum: SHIPMENT_STATUSES })
   @IsOptional()
-  @IsIn([
-    'pending',
-    'picked_up',
-    'in_transit',
-    'out_for_delivery',
-    'delivered',
-    'failed',
-    'returned',
-  ])
-  status?: string;
+  @IsIn(SHIPMENT_STATUSES)
+  status?: ShipmentStatus;
 
   @ApiPropertyOptional({ example: 'DHL' })
   @IsOptional()

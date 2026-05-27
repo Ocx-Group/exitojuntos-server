@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEmail, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsEmail,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateOrderDto {
   @ApiPropertyOptional({ example: 'USD' })
@@ -9,7 +16,7 @@ export class CreateOrderDto {
   @MaxLength(10)
   currency?: string;
 
-  @ApiPropertyOptional({ example: 5.00 })
+  @ApiPropertyOptional({ example: 5.0 })
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -19,6 +26,7 @@ export class CreateOrderDto {
   @ApiPropertyOptional({ example: 'Por favor entregar en horario de mañana' })
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   notes?: string;
 
   @ApiProperty({ example: 'cliente@email.com' })
