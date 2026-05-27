@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,6 +25,7 @@ import { CreateRoleDto, UpdateRoleDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @ApiTags('Roles')
 @Controller({ path: 'roles', version: 'v1' })
@@ -82,8 +84,8 @@ export class RolesController {
     status: 401,
     description: 'No autorizado',
   })
-  findAll() {
-    return this.rolesService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.rolesService.findAll(paginationDto);
   }
 
   @Get(':id')

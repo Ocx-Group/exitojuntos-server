@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
 import { PaginationDto, UpdateProfileDto } from './dto';
 import { User } from './entities/user.entity';
 import { Country } from './entities/country.entity';
@@ -15,8 +16,7 @@ export class UsersService {
   ) {}
 
   async findAll(paginationDto: PaginationDto) {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = getPagination(paginationDto);
 
     const [users, total] = await this.userRepository.findAndCount({
       select: [
@@ -43,15 +43,7 @@ export class UsersService {
       order: { createdAt: 'DESC' },
     });
 
-    return {
-      data: users,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return toPaginatedResult(users, total, page, limit);
   }
 
   async findByPhone(phone: string) {

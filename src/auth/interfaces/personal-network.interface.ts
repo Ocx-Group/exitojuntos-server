@@ -14,4 +14,10 @@ export interface PersonalNetworkNode {
 export interface PersonalNetworkResponse {
   network: PersonalNetworkNode[];
   totalNodes: number;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

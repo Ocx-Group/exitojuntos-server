@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -18,6 +19,7 @@ import {
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateTestimonialDto, UpdateTestimonialDto } from './dto';
 import { TestimonialsService } from './testimonials.service';
 
@@ -28,8 +30,8 @@ export class TestimonialsController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener testimonios activos' })
-  findActive() {
-    return this.testimonialsService.findActive();
+  findActive(@Query() paginationDto: PaginationDto) {
+    return this.testimonialsService.findActive(paginationDto);
   }
 
   @Get('admin')
@@ -37,8 +39,8 @@ export class TestimonialsController {
   @Roles('admin')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todos los testimonios (Solo Admin)' })
-  findAll() {
-    return this.testimonialsService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.testimonialsService.findAll(paginationDto);
   }
 
   @Post()

@@ -5,6 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PaginationDto } from '../common/dto/pagination.dto';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
 import { Role } from '../auth/entities/role.entity';
 import { CreateRoleDto, UpdateRoleDto } from './dto';
 
@@ -31,10 +34,17 @@ export class RolesService {
     return await this.roleRepository.save(newRole);
   }
 
-  async findAll(): Promise<Role[]> {
-    return await this.roleRepository.find({
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Role>> {
+    const { page, limit, skip } = getPagination(paginationDto);
+    const [roles, total] = await this.roleRepository.findAndCount({
       relations: ['users'],
+      skip,
+      take: limit,
     });
+
+    return toPaginatedResult(roles, total, page, limit);
   }
 
   async findOne(id: number): Promise<Role> {

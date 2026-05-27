@@ -391,7 +391,7 @@ export class AuthService {
     }
 
     return {
-      id: user.id.toString(),
+      id: user.id,
       name: user.name,
       username: user.username,
       phone: user.phone,

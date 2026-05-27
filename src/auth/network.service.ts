@@ -1,6 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PaginationDto } from '../common/dto/pagination.dto';
+import { getPagination } from '../common/utils/pagination.util';
 import { GetUnilevelTreeDto } from './dto';
 import { User } from './entities/user.entity';
 import {
@@ -69,7 +71,9 @@ export class NetworkService {
   async getPersonalNetwork(
     requestingUser: { id: string; phone: string; role: string },
     userId?: number,
+    paginationDto?: PaginationDto,
   ): Promise<PersonalNetworkResponse> {
+    const { page, limit, skip } = getPagination(paginationDto);
     const isAdmin = requestingUser.role === 'Admin';
     const targetUserId =
       isAdmin && userId ? userId : Number.parseInt(requestingUser.id);
@@ -78,10 +82,17 @@ export class NetworkService {
       `SELECT * FROM get_personal_network($1)`,
       [targetUserId],
     );
+    const paginatedNetwork = network.slice(skip, skip + limit);
 
     return {
-      network,
+      network: paginatedNetwork,
       totalNodes: network.length,
+      meta: {
+        total: network.length,
+        page,
+        limit,
+        totalPages: Math.ceil(network.length / limit),
+      },
     };
   }
 }

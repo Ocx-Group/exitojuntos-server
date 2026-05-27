@@ -9,6 +9,7 @@ import {
 import { NetworkService } from './network.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GetUser } from './decorators/get-user.decorator';
+import { PersonalNetworkQueryDto } from './dto/personal-network-query.dto';
 
 @ApiTags('Red')
 @Controller({ path: 'auth', version: '1' })
@@ -115,8 +116,8 @@ export class NetworkController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   getPersonalNetwork(
     @GetUser() user: { id: string; phone: string; role: string },
-    @Query('userId') userId?: number,
+    @Query() query: PersonalNetworkQueryDto,
   ) {
-    return this.networkService.getPersonalNetwork(user, userId);
+    return this.networkService.getPersonalNetwork(user, query.userId, query);
   }
 }

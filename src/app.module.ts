@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,6 +12,11 @@ import { EmailModule } from './email';
 import { LogsModule } from './logs';
 import { TestimonialsModule } from './testimonials';
 import { StorageModule } from './storage/storage.module';
+import { ProductsModule } from './products/products.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { ShipmentsModule } from './shipments/shipments.module';
 
 const envFilePath = process.env.NODE_ENV
   ? [
@@ -25,6 +32,22 @@ const envFilePath = process.env.NODE_ENV
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath,
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => [
+        {
+          ttl: Number.parseInt(
+            configService.get<string>('THROTTLE_TTL') ?? '60000',
+            10,
+          ),
+          limit: Number.parseInt(
+            configService.get<string>('THROTTLE_LIMIT') ?? '100',
+            10,
+          ),
+        },
+      ],
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -47,8 +70,19 @@ const envFilePath = process.env.NODE_ENV
     LogsModule,
     TestimonialsModule,
     StorageModule,
+    ProductsModule,
+    CartModule,
+    OrdersModule,
+    TransactionsModule,
+    ShipmentsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -76,8 +76,11 @@ export class CustomLoggerService implements LoggerService {
   }
 
   getLogs(getLogsDto: GetLogsDto) {
-    const page: number = getLogsDto.page ?? 1;
-    const limit: number = getLogsDto.limit ?? 50;
+    const page: number = Math.max(1, Number(getLogsDto.page ?? 1));
+    const limit: number = Math.min(
+      100,
+      Math.max(1, Number(getLogsDto.limit ?? 50)),
+    );
     const { level, context, search } = getLogsDto;
 
     // Filtrar logs
