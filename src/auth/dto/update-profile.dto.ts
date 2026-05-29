@@ -5,6 +5,9 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
+  MaxLength,
+  MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -13,6 +16,20 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Nombre de usuario (sólo letras, números, puntos, guiones y guiones bajos)',
+  })
+  @IsString()
+  @IsOptional()
+  @MinLength(3)
+  @MaxLength(30)
+  @Matches(/^[a-zA-Z0-9._-]+$/, {
+    message:
+      'El nombre de usuario sólo puede contener letras, números, puntos, guiones y guiones bajos',
+  })
+  username?: string;
 
   @ApiPropertyOptional({ description: 'Apellido del usuario' })
   @IsString()

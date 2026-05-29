@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
 import { PaginationDto, UpdateProfileDto } from './dto';
 import { User } from './entities/user.entity';
@@ -123,6 +127,25 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
+    }
+
+    if (updateProfileDto.username !== undefined) {
+      const normalizedUsername = updateProfileDto.username.trim().toLowerCase();
+
+      if (normalizedUsername !== user.username) {
+        const existingUser = await this.userRepository.findOne({
+          where: { username: normalizedUsername, id: Not(user.id) },
+          select: { id: true },
+        });
+
+        if (existingUser) {
+          throw new ConflictException(
+            'El nombre de usuario ya está registrado',
+          );
+        }
+
+        user.username = normalizedUsername;
+      }
     }
 
     this.applyProfileUpdates(user, updateProfileDto);
