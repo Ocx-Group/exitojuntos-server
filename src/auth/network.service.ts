@@ -82,6 +82,9 @@ export class NetworkService {
       `SELECT * FROM get_personal_network($1)`,
       [targetUserId],
     );
+
+    this.assignLevels(network, targetUserId);
+
     const paginatedNetwork = network.slice(skip, skip + limit);
 
     return {
@@ -94,5 +97,33 @@ export class NetworkService {
         totalPages: Math.ceil(network.length / limit),
       },
     };
+  }
+
+  private assignLevels(network: PersonalNetworkNode[], rootId: number): void {
+    const childrenByFather = new Map<number, PersonalNetworkNode[]>();
+    for (const node of network) {
+      const list = childrenByFather.get(node.father) ?? [];
+      list.push(node);
+      childrenByFather.set(node.father, list);
+    }
+
+    const queue: Array<{ fatherId: number; level: number }> = [
+      { fatherId: rootId, level: 0 },
+    ];
+
+    while (queue.length > 0) {
+      const { fatherId, level } = queue.shift()!;
+      const children = childrenByFather.get(fatherId) ?? [];
+      for (const child of children) {
+        child.level = level + 1;
+        queue.push({ fatherId: child.id, level: level + 1 });
+      }
+    }
+
+    for (const node of network) {
+      if (node.level === undefined || node.level === null) {
+        node.level = 0;
+      }
+    }
   }
 }

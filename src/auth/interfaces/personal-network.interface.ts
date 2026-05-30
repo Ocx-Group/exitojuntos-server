@@ -9,6 +9,7 @@ export interface PersonalNetworkNode {
   latitude: number;
   longitude: number;
   created_at: Date;
+  level: number;
 }
 
 export interface PersonalNetworkResponse {
