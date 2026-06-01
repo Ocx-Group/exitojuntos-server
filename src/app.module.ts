@@ -17,6 +17,7 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { ShipmentsModule } from './shipments/shipments.module';
+import { CoinpaymentsModule } from './coinpayments/coinpayments.module';
 
 const envFilePath = process.env.NODE_ENV
   ? [
@@ -75,6 +76,7 @@ const envFilePath = process.env.NODE_ENV
     OrdersModule,
     TransactionsModule,
     ShipmentsModule,
+    CoinpaymentsModule,
   ],
   controllers: [AppController],
   providers: [

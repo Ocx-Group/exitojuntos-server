@@ -9,6 +9,8 @@ import { CustomLoggerService } from './logs';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
+    // Conserva el cuerpo crudo para validar la firma de los webhooks (CoinPayments).
+    rawBody: true,
   });
 
   // Configurar el logger personalizado
