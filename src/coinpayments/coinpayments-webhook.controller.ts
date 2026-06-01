@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   Logger,
@@ -12,10 +13,8 @@ import {
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import {
-  COINPAYMENTS_ALL_WEBHOOK_EVENTS,
-  COINPAYMENTS_WEBHOOK_EVENTS,
-} from './constants/coinpayments.constants';
+import { COINPAYMENTS_ALL_WEBHOOK_EVENTS } from './constants/coinpayments.constants';
+import { CoinpaymentsCheckoutService } from './coinpayments-checkout.service';
 import { CoinpaymentsService } from './coinpayments.service';
 
 /**
@@ -27,19 +26,41 @@ import { CoinpaymentsService } from './coinpayments.service';
 export class CoinpaymentsWebhookController {
   private readonly logger = new Logger(CoinpaymentsWebhookController.name);
 
-  constructor(private readonly coinpaymentsService: CoinpaymentsService) {}
+  constructor(
+    private readonly coinpaymentsService: CoinpaymentsService,
+    private readonly checkoutService: CoinpaymentsCheckoutService,
+  ) {}
+
+  /**
+   * Verificación de salud del endpoint. CoinPayments (y los navegadores) hacen un
+   * GET para comprobar que la URL del webhook es accesible; las notificaciones
+   * reales llegan por POST con firma.
+   */
+  @Get()
+  @HttpCode(200)
+  healthCheck(): { status: string } {
+    return { status: 'ok' };
+  }
 
   @Post()
   @HttpCode(200)
-  handle(
+  async handle(
     @Req() req: RawBodyRequest<Request>,
     @Headers('x-coinpayments-signature') signature: string | undefined,
+    @Headers('x-coinpayments-client') clientId: string | undefined,
+    @Headers('x-coinpayments-timestamp') timestamp: string | undefined,
     @Body() payload: Record<string, unknown>,
-  ): { received: boolean } {
+  ): Promise<{ received: boolean }> {
     // El cuerpo crudo es necesario para validar la firma exactamente como se envió.
     const rawBody = req.rawBody?.toString('utf8') ?? '';
 
-    if (!this.coinpaymentsService.verifyWebhookSignature(rawBody, signature)) {
+    const valid = this.coinpaymentsService.verifyWebhookSignature({
+      rawBody,
+      signature,
+      clientId,
+      timestamp,
+    });
+    if (!valid) {
       throw new UnauthorizedException('Firma de webhook inválida');
     }
 
@@ -49,7 +70,7 @@ export class CoinpaymentsWebhookController {
     }
 
     this.logger.log(`Webhook recibido: ${event}`);
-    this.dispatch(event, payload);
+    await this.checkoutService.processWebhookEvent(event, payload);
 
     return { received: true };
   }
@@ -58,25 +79,5 @@ export class CoinpaymentsWebhookController {
   private resolveEvent(payload: Record<string, unknown>): string | undefined {
     const type = payload?.['type'] ?? payload?.['event'];
     return typeof type === 'string' ? type : undefined;
-  }
-
-  /**
-   * Punto de integración con el dominio. Aquí se debe actualizar el estado de la
-   * orden/transacción según el evento recibido (p. ej. marcar la orden como pagada).
-   */
-  private dispatch(event: string, payload: Record<string, unknown>): void {
-    switch (event.toLowerCase()) {
-      case COINPAYMENTS_WEBHOOK_EVENTS.InvoicePaid.toLowerCase():
-      case COINPAYMENTS_WEBHOOK_EVENTS.InvoiceCompleted.toLowerCase():
-        // TODO: marcar la orden/transacción asociada como pagada.
-        break;
-      case COINPAYMENTS_WEBHOOK_EVENTS.InvoiceCancelled.toLowerCase():
-      case COINPAYMENTS_WEBHOOK_EVENTS.InvoiceTimedOut.toLowerCase():
-        // TODO: marcar la orden/transacción asociada como cancelada/expirada.
-        break;
-      default:
-        this.logger.debug(`Evento sin manejador específico: ${event}`);
-    }
-    void payload;
   }
 }

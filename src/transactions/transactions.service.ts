@@ -48,6 +48,14 @@ export class TransactionsService {
     return tx;
   }
 
+  /** Última transacción de pago de una orden (la usa el webhook de la pasarela). */
+  async findLatestPaymentByOrder(orderId: number): Promise<Transaction | null> {
+    return this.transactionRepository.findOne({
+      where: { orderId, type: 'payment' },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async update(id: number, dto: UpdateTransactionDto): Promise<Transaction> {
     const tx = await this.findOne(id);
     Object.assign(tx, dto);

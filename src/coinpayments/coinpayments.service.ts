@@ -41,7 +41,6 @@ export class CoinpaymentsService {
   private readonly baseUrl: string;
   private readonly invoiceCurrency: string;
   private readonly webhookNotificationsUrl?: string;
-  private readonly webhookSecret?: string;
   private readonly successUrl: string;
   private readonly cancelUrl: string;
   private readonly timeoutMs =
@@ -70,9 +69,6 @@ export class CoinpaymentsService {
     );
     this.webhookNotificationsUrl = this.configService.get<string>(
       COINPAYMENTS_CONFIG_KEYS.WebhookNotificationsUrl,
-    );
-    this.webhookSecret = this.configService.get<string>(
-      COINPAYMENTS_CONFIG_KEYS.WebhookSecret,
     );
     this.successUrl = this.configService.get<string>(
       COINPAYMENTS_CONFIG_KEYS.SuccessUrl,
@@ -137,6 +133,10 @@ export class CoinpaymentsService {
       currency?: string;
       description?: string;
       notificationsUrl?: string;
+      /** Referencia propia del comercio (p. ej. el id de la orden). */
+      invoiceId?: string;
+      /** Datos arbitrarios que CoinPayments devuelve en el webhook. */
+      customData?: Record<string, string>;
     } = {},
   ): Promise<CoinPaymentsRestResponse> {
     const totalAmount = this.toMoney(amount);
@@ -163,6 +163,8 @@ export class CoinpaymentsService {
         total: totalAmount,
       },
       description: options.description,
+      invoiceId: options.invoiceId,
+      customData: options.customData,
       successUrl: this.successUrl,
       cancelUrl: this.cancelUrl,
       webhooks: notificationsUrl
@@ -255,27 +257,71 @@ export class CoinpaymentsService {
 
   /**
    * Verifica la firma de un webhook entrante de CoinPayments.
-   * CoinPayments firma el cuerpo crudo con HMAC-SHA256 usando el webhook secret
-   * y lo envía en la cabecera `X-CoinPayments-Signature` (base64).
+   *
+   * CoinPayments firma la notificación con el MISMO esquema que las peticiones
+   * salientes, usando el client secret (no existe un "webhook secret" aparte):
+   *
+   *   mensaje = BOM + "POST" + urlRegistrada + clientId + timestamp + cuerpoCrudo
+   *   firma   = base64(HMAC-SHA256(mensaje, clientSecret))
+   *
+   * `clientId` y `timestamp` provienen de las cabeceras X-CoinPayments-Client /
+   * X-CoinPayments-Timestamp, y la URL debe ser exactamente la registrada
+   * (COINPAYMENTS_WEBHOOK_NOTIFICATIONS_URL), no una reconstruida por el framework.
    */
-  verifyWebhookSignature(rawBody: string, signature?: string): boolean {
-    if (!this.webhookSecret) {
+  verifyWebhookSignature(params: {
+    rawBody: string;
+    signature?: string;
+    clientId?: string;
+    timestamp?: string;
+  }): boolean {
+    const { rawBody, signature, clientId, timestamp } = params;
+
+    if (!this.clientSecret) {
       this.logger.warn(
-        'COINPAYMENTS_WEBHOOK_SECRET no configurado; no se puede verificar la firma del webhook.',
+        'COINPAYMENTS_CLIENT_SECRET no configurado; no se puede verificar la firma del webhook.',
       );
       return false;
     }
-    if (!signature) return false;
+    if (!this.webhookNotificationsUrl) {
+      this.logger.warn(
+        'COINPAYMENTS_WEBHOOK_NOTIFICATIONS_URL no configurada; no se puede verificar la firma del webhook.',
+      );
+      return false;
+    }
+    if (!signature || !clientId || !timestamp) {
+      this.logger.warn(
+        'Webhook sin las cabeceras X-CoinPayments-Signature/Client/Timestamp.',
+      );
+      return false;
+    }
 
-    const expected = createHmac('sha256', this.webhookSecret)
-      .update(rawBody, 'utf8')
+    // Rechaza timestamps con más de ~5 minutos de antigüedad (anti-replay).
+    const ts = Date.parse(timestamp);
+    if (Number.isNaN(ts) || Math.abs(Date.now() - ts) > 5 * 60 * 1000) {
+      this.logger.warn(`Timestamp de webhook fuera de rango: ${timestamp}`);
+      return false;
+    }
+
+    const bom = String.fromCharCode(0xfeff);
+    const message = `${bom}POST${this.webhookNotificationsUrl}${clientId}${timestamp}${rawBody}`;
+    const expected = createHmac('sha256', this.clientSecret)
+      .update(message, 'utf8')
       .digest('base64');
 
     const expectedBuffer = Buffer.from(expected);
     const signatureBuffer = Buffer.from(signature);
-    if (expectedBuffer.length !== signatureBuffer.length) return false;
+    const matches =
+      expectedBuffer.length === signatureBuffer.length &&
+      timingSafeEqual(expectedBuffer, signatureBuffer);
 
-    return timingSafeEqual(expectedBuffer, signatureBuffer);
+    if (!matches) {
+      // Útil para diagnosticar el esquema de firma durante las pruebas.
+      this.logger.warn(
+        `Firma de webhook no coincide. Esperada=${expected} recibida=${signature}`,
+      );
+    }
+
+    return matches;
   }
 
   // ── Internos ──────────────────────────────────────────────────────
