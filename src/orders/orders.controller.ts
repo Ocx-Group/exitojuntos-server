@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -7,6 +17,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { User } from '../auth/entities/user.entity';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { FilterOrdersDto } from './dto/filter-orders.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
 
@@ -44,8 +55,8 @@ export class OrdersController {
   @Get()
   @Roles('admin')
   @ApiOperation({ summary: 'Listar todas las órdenes (admin)' })
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.ordersService.findAll(paginationDto);
+  findAll(@Query() dto: FilterOrdersDto) {
+    return this.ordersService.findAll(dto);
   }
 
   @Get(':id')
@@ -58,7 +69,10 @@ export class OrdersController {
   @Patch(':id/status')
   @Roles('admin')
   @ApiOperation({ summary: 'Actualizar estado de orden (admin)' })
-  updateStatus(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderStatusDto) {
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
     return this.ordersService.updateStatus(id, dto);
   }
 }

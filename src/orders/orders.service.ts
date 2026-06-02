@@ -13,6 +13,7 @@ import {
   toPaginatedResult,
 } from '../common/utils/pagination.util';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { FilterOrdersDto } from './dto/filter-orders.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderDetail } from './entities/order-detail.entity';
 import { Order, OrderStatus } from './entities/order.entity';
@@ -162,10 +163,13 @@ export class OrdersService {
     return toPaginatedResult(orders, total, page, limit);
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Order>> {
-    const { page, limit, skip } = getPagination(paginationDto);
+  async findAll(dto: FilterOrdersDto): Promise<PaginatedResult<Order>> {
+    const { page, limit, skip } = getPagination(dto);
+    const where: FindOptionsWhere<Order> = { deletedAt: IsNull() };
+    if (dto.status) where.status = dto.status;
+
     const [orders, total] = await this.orderRepository.findAndCount({
-      where: { deletedAt: IsNull() },
+      where,
       relations: ['user', 'details'],
       order: { createdAt: 'DESC' },
       skip,
