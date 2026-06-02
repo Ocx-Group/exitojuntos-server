@@ -20,7 +20,12 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { StorageService } from './storage.service';
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 @ApiTags('Almacenamiento')
@@ -55,7 +60,7 @@ export class StorageController {
       throw new BadRequestException('No se recibió ningún archivo');
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+    if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
       throw new BadRequestException(
         'Formato no permitido. Solo se aceptan JPEG, PNG, WebP o GIF',
       );
