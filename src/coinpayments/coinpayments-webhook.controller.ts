@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { COINPAYMENTS_ALL_WEBHOOK_EVENTS } from './constants/coinpayments.constants';
@@ -22,6 +23,7 @@ import { CoinpaymentsService } from './coinpayments.service';
  * Endpoint público (sin JWT): la autenticidad se valida con la firma HMAC.
  */
 @ApiExcludeController()
+@SkipThrottle()
 @Controller({ path: 'coinpayments/webhook', version: '1' })
 export class CoinpaymentsWebhookController {
   private readonly logger = new Logger(CoinpaymentsWebhookController.name);

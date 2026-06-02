@@ -86,6 +86,16 @@ export class CoinpaymentsService {
         'COINPAYMENTS_CLIENT_ID / COINPAYMENTS_CLIENT_SECRET no configurados. El proveedor no funcionará.',
       );
     }
+
+    if (this.webhookNotificationsUrl) {
+      this.logger.log(
+        `CoinPayments webhook URL: ${this.webhookNotificationsUrl}`,
+      );
+    } else {
+      this.logger.warn(
+        'COINPAYMENTS_WEBHOOK_NOTIFICATIONS_URL no configurada: las facturas se crearán SIN webhook y CoinPayments no notificará el pago.',
+      );
+    }
   }
 
   /** ¿Están configuradas las credenciales del proveedor? */
