@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
-import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
+import {
+  getPagination,
+  toPaginatedResult,
+} from '../common/utils/pagination.util';
 import { CreateTestimonialDto, UpdateTestimonialDto } from './dto';
 import { Testimonial } from './testimonial.entity';
 
@@ -18,12 +21,14 @@ export class TestimonialsService {
     paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Testimonial>> {
     const { page, limit, skip } = getPagination(paginationDto);
-    const [testimonials, total] = await this.testimonialRepository.findAndCount({
-      where: { isActive: true, deletedAt: IsNull() },
-      order: { displayOrder: 'ASC', createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const [testimonials, total] = await this.testimonialRepository.findAndCount(
+      {
+        where: { isActive: true, deletedAt: IsNull() },
+        order: { displayOrder: 'ASC', createdAt: 'DESC' },
+        skip,
+        take: limit,
+      },
+    );
 
     return toPaginatedResult(testimonials, total, page, limit);
   }
@@ -32,12 +37,14 @@ export class TestimonialsService {
     paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Testimonial>> {
     const { page, limit, skip } = getPagination(paginationDto);
-    const [testimonials, total] = await this.testimonialRepository.findAndCount({
-      withDeleted: false,
-      order: { displayOrder: 'ASC', createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const [testimonials, total] = await this.testimonialRepository.findAndCount(
+      {
+        withDeleted: false,
+        order: { displayOrder: 'ASC', createdAt: 'DESC' },
+        skip,
+        take: limit,
+      },
+    );
 
     return toPaginatedResult(testimonials, total, page, limit);
   }

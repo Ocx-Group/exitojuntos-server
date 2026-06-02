@@ -1,8 +1,22 @@
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Order } from '../../orders/entities/order.entity';
 
 export type TransactionType = 'payment' | 'refund';
-export type TransactionStatus = 'pending' | 'awaiting_confirmations' | 'approved' | 'failed' | 'cancelled';
+export type TransactionStatus =
+  | 'pending'
+  | 'awaiting_confirmations'
+  | 'approved'
+  | 'failed'
+  | 'cancelled';
 
 @Entity('transactions')
 export class Transaction {
@@ -26,19 +40,46 @@ export class Transaction {
   @Column({ type: 'varchar', length: 10, default: 'USD' })
   currency!: string;
 
-  @Column({ name: 'payment_method', type: 'varchar', length: 50, default: 'crypto' })
+  @Column({
+    name: 'payment_method',
+    type: 'varchar',
+    length: 50,
+    default: 'crypto',
+  })
   paymentMethod!: string;
 
-  @Column({ name: 'crypto_currency', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'crypto_currency',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   cryptoCurrency!: string | null;
 
-  @Column({ name: 'crypto_network', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'crypto_network',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   cryptoNetwork!: string | null;
 
-  @Column({ name: 'crypto_amount', type: 'decimal', precision: 36, scale: 18, nullable: true })
+  @Column({
+    name: 'crypto_amount',
+    type: 'decimal',
+    precision: 36,
+    scale: 18,
+    nullable: true,
+  })
   cryptoAmount!: number | null;
 
-  @Column({ name: 'exchange_rate', type: 'decimal', precision: 20, scale: 8, nullable: true })
+  @Column({
+    name: 'exchange_rate',
+    type: 'decimal',
+    precision: 20,
+    scale: 8,
+    nullable: true,
+  })
   exchangeRate!: number | null;
 
   @Column({ name: 'wallet_to', type: 'varchar', length: 255, nullable: true })
@@ -47,7 +88,13 @@ export class Transaction {
   @Column({ name: 'wallet_from', type: 'varchar', length: 255, nullable: true })
   walletFrom!: string | null;
 
-  @Column({ name: 'tx_hash', type: 'varchar', length: 255, nullable: true, unique: true })
+  @Column({
+    name: 'tx_hash',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   txHash!: string | null;
 
   @Column({ type: 'int', default: 0 })

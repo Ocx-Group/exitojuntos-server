@@ -24,7 +24,6 @@ async function bootstrap() {
       'http://localhost:3000',
       'https://www.exitojuntos.com',
       'https://exitojuntos.com',
-      'http://server.exitojuntos.com',
       'https://server.exitojuntos.com',
       'http://167.71.171.55:3000',
       'http://167.71.171.55',

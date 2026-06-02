@@ -52,7 +52,7 @@ export class CreateTransactionDto {
   @Type(() => Number)
   cryptoAmount?: number;
 
-  @ApiPropertyOptional({ example: 1.0 })
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   @IsNumber()
   @IsPositive()

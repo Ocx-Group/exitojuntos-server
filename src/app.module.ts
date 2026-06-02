@@ -17,7 +17,7 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { ShipmentsModule } from './shipments/shipments.module';
-import { CoinpaymentsModule } from './coinpayments/coinpayments.module';
+import { CoinpaymentsModule } from './coinpayments';
 
 const envFilePath = process.env.NODE_ENV
   ? [

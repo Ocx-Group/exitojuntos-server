@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
-import { getPagination, toPaginatedResult } from '../common/utils/pagination.util';
+import {
+  getPagination,
+  toPaginatedResult,
+} from '../common/utils/pagination.util';
 import { OrdersService } from '../orders/orders.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -32,18 +35,23 @@ export class TransactionsService {
     paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Transaction>> {
     const { page, limit, skip } = getPagination(paginationDto);
-    const [transactions, total] = await this.transactionRepository.findAndCount({
-      where: { orderId },
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const [transactions, total] = await this.transactionRepository.findAndCount(
+      {
+        where: { orderId },
+        order: { createdAt: 'DESC' },
+        skip,
+        take: limit,
+      },
+    );
 
     return toPaginatedResult(transactions, total, page, limit);
   }
 
   async findOne(id: number): Promise<Transaction> {
-    const tx = await this.transactionRepository.findOne({ where: { id }, relations: ['order'] });
+    const tx = await this.transactionRepository.findOne({
+      where: { id },
+      relations: ['order'],
+    });
     if (!tx) throw new NotFoundException(`Transacción ${id} no encontrada`);
     return tx;
   }
@@ -67,12 +75,14 @@ export class TransactionsService {
     paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Transaction>> {
     const { page, limit, skip } = getPagination(paginationDto);
-    const [transactions, total] = await this.transactionRepository.findAndCount({
-      relations: ['order'],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const [transactions, total] = await this.transactionRepository.findAndCount(
+      {
+        relations: ['order'],
+        order: { createdAt: 'DESC' },
+        skip,
+        take: limit,
+      },
+    );
 
     return toPaginatedResult(transactions, total, page, limit);
   }

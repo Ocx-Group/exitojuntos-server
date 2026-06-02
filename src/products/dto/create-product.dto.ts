@@ -1,6 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsPositive, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Proteína Whey 1kg' })
@@ -14,12 +23,16 @@ export class CreateProductDto {
   @Type(() => Number)
   price!: number;
 
-  @ApiPropertyOptional({ example: 'Proteína de suero de leche de alta calidad' })
+  @ApiPropertyOptional({
+    example: 'Proteína de suero de leche de alta calidad',
+  })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'https://bucket.s3.amazonaws.com/product.jpg' })
+  @ApiPropertyOptional({
+    example: 'https://bucket.s3.amazonaws.com/product.jpg',
+  })
   @IsOptional()
   @IsString()
   image?: string;

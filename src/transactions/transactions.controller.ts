@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -45,7 +55,10 @@ export class TransactionsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar transacción (webhook/admin)' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTransactionDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateTransactionDto,
+  ) {
     return this.transactionsService.update(id, dto);
   }
 }
