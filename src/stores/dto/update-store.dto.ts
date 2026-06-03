@@ -6,6 +6,7 @@ import {
   IsString,
   IsUrl,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import type { StoreStatus } from '../entities/store.entity';
 
@@ -24,11 +25,14 @@ export class UpdateStoreDto {
 
   @ApiPropertyOptional({ example: 'https://cdn.exitojuntos.com/logo.png' })
   @IsOptional()
+  // Cadena vacía = limpiar el campo; solo validamos URL si hay valor.
+  @ValidateIf(o => o.logoUrl !== '' && o.logoUrl != null)
   @IsUrl()
   logoUrl?: string;
 
   @ApiPropertyOptional({ example: 'https://cdn.exitojuntos.com/banner.png' })
   @IsOptional()
+  @ValidateIf(o => o.bannerUrl !== '' && o.bannerUrl != null)
   @IsUrl()
   bannerUrl?: string;
 

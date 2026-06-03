@@ -79,7 +79,19 @@ export class StoresService {
     dto: UpdateStoreDto,
   ): Promise<Store> {
     const store = await this.getMyStore(ownerUserId);
-    Object.assign(store, dto);
+    // Cadenas vacías en campos opcionales = limpiar (null) en vez de guardar ''.
+    const normalized = { ...dto };
+    for (const key of [
+      'name',
+      'tagline',
+      'logoUrl',
+      'bannerUrl',
+    ] as const) {
+      if (normalized[key] === '') {
+        (normalized as Record<string, unknown>)[key] = null;
+      }
+    }
+    Object.assign(store, normalized);
     return this.storeRepository.save(store);
   }
 
