@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOptionsWhere, IsNull, Repository } from 'typeorm';
 import { CartService } from '../cart/cart.service';
+import { StoresService } from '../stores/stores.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import {
@@ -36,6 +37,7 @@ export class OrdersService {
     @InjectRepository(OrderDetail)
     private readonly detailRepository: Repository<OrderDetail>,
     private readonly cartService: CartService,
+    private readonly storesService: StoresService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -83,6 +85,13 @@ export class OrdersService {
       orderDetails.reduce((sum, detail) => sum + detail.lineTax, 0),
     );
 
+    // Atribución: la tienda viene arrastrada desde el carrito. Se guarda
+    // el snapshot del dueño para futuras comisiones, aunque la tienda
+    // cambie o se elimine después.
+    const storeId = cart.storeId ?? null;
+    const referrerUserId =
+      storeId != null ? await this.storesService.getOwnerUserId(storeId) : null;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -91,6 +100,8 @@ export class OrdersService {
     try {
       const order = queryRunner.manager.create(Order, {
         userId,
+        storeId,
+        referrerUserId,
         currency: dto.currency ?? 'USD',
         subtotal,
         taxAmount,
@@ -155,6 +166,23 @@ export class OrdersService {
     const [orders, total] = await this.orderRepository.findAndCount({
       where: { userId, deletedAt: IsNull() },
       relations: ['details', 'details.product'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    return toPaginatedResult(orders, total, page, limit);
+  }
+
+  async findStoreSales(
+    ownerUserId: number,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Order>> {
+    const store = await this.storesService.getMyStore(ownerUserId);
+    const { page, limit, skip } = getPagination(paginationDto);
+    const [orders, total] = await this.orderRepository.findAndCount({
+      where: { storeId: store.id, deletedAt: IsNull() },
+      relations: ['details'],
       order: { createdAt: 'DESC' },
       skip,
       take: limit,

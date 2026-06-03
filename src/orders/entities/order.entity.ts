@@ -1,8 +1,26 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { OrderDetail } from './order-detail.entity';
 
-export type OrderStatus = 'pending_payment' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+export type OrderStatus =
+  | 'pending_payment'
+  | 'paid'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+  | 'refunded';
 
 @Entity('orders')
 export class Order {
@@ -17,22 +35,54 @@ export class Order {
   @Column({ type: 'varchar', length: 30, default: 'pending_payment' })
   status!: OrderStatus;
 
+  @Index('idx_orders_store')
+  @Column({ name: 'store_id', type: 'int', nullable: true })
+  storeId!: number | null;
+
+  // Snapshot del dueño de la tienda al momento de la compra (atribución)
+  @Column({ name: 'referrer_user_id', type: 'bigint', nullable: true })
+  referrerUserId!: number | null;
+
   @Column({ type: 'varchar', length: 10, default: 'USD' })
   currency!: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   subtotal!: number;
 
-  @Column({ name: 'tax_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'tax_amount',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   taxAmount!: number;
 
-  @Column({ name: 'discount_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'discount_amount',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   discountAmount!: number;
 
-  @Column({ name: 'shipping_cost', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'shipping_cost',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   shippingCost!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, insert: false, update: false })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    insert: false,
+    update: false,
+  })
   total!: number;
 
   @Column({ type: 'text', nullable: true })
@@ -53,10 +103,20 @@ export class Order {
   @Column({ name: 'shipping_province', type: 'varchar', length: 100 })
   shippingProvince!: string;
 
-  @Column({ name: 'shipping_postal_code', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'shipping_postal_code',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   shippingPostalCode!: string | null;
 
-  @Column({ name: 'shipping_phone', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'shipping_phone',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   shippingPhone!: string | null;
 
   @Index('idx_orders_created')

@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductsService } from '../products/products.service';
+import { StoresService } from '../stores/stores.service';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CartItem } from './entities/cart-item.entity';
@@ -19,6 +20,7 @@ export class CartService {
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
     private readonly productsService: ProductsService,
+    private readonly storesService: StoresService,
   ) {}
 
   async getOrCreateActiveCart(userId: number): Promise<Cart> {
@@ -40,6 +42,18 @@ export class CartService {
       throw new BadRequestException('El producto no está disponible');
 
     const cart = await this.getOrCreateActiveCart(userId);
+
+    // Atribución: se fija la tienda la primera vez (first-touch) y no se
+    // sobrescribe mientras el carrito siga activo.
+    if (cart.storeId == null && dto.storeToken) {
+      const storeId = await this.storesService.resolveStoreIdByToken(
+        dto.storeToken,
+      );
+      if (storeId != null) {
+        cart.storeId = storeId;
+        await this.cartRepository.update(cart.id, { storeId });
+      }
+    }
 
     const existing = await this.cartItemRepository.findOne({
       where: { cartId: cart.id, productId: dto.productId },

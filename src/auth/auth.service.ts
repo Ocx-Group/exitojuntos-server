@@ -28,6 +28,7 @@ import { Country } from './entities/country.entity';
 import { EmailAttachment, EmailService } from '../email';
 import { getWelcomeEmailTemplate } from '../email/templates/welcome-email.template';
 import { getPasswordResetEmailTemplate } from '../email/templates/password-reset-email.template';
+import { StoresService } from '../stores/stores.service';
 
 @Injectable()
 export class AuthService {
@@ -45,6 +46,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly storesService: StoresService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -137,6 +139,11 @@ export class AuthService {
     });
 
     await this.userRepository.save(newUser);
+
+    await this.createStoreSafely(
+      newUser.id,
+      `${newUser.name} ${newUser.lastName}`.trim(),
+    );
 
     Promise.race([
       this.sendWelcomeEmail(newUser, password),
@@ -369,6 +376,11 @@ export class AuthService {
 
     await this.userRepository.save(newUser);
 
+    await this.createStoreSafely(
+      newUser.id,
+      `${newUser.name} ${newUser.lastName}`.trim(),
+    );
+
     const payload: JwtPayload = {
       sub: newUser.id.toString(),
       username: newUser.username,
@@ -501,6 +513,25 @@ export class AuthService {
       Math.random().toString(36).substring(2, 15) +
       Math.random().toString(36).substring(2, 15)
     );
+  }
+
+  /**
+   * Crea la tienda por defecto del usuario. No debe interrumpir el
+   * registro si algo falla: la tienda también puede autocrearse luego
+   * al llamar GET /stores/me.
+   */
+  private async createStoreSafely(
+    userId: number,
+    name: string,
+  ): Promise<void> {
+    try {
+      await this.storesService.createDefaultForUser(userId, name || undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(
+        `No se pudo crear la tienda por defecto para el usuario ${userId}: ${message}`,
+      );
+    }
   }
 
   private async ensureUserDoesNotExist({

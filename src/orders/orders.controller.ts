@@ -52,6 +52,15 @@ export class OrdersController {
     return this.ordersService.cancel(id, user.id);
   }
 
+  @Get('store-sales')
+  @ApiOperation({ summary: 'Ventas atribuidas a mi tienda' })
+  findStoreSales(
+    @GetUser() user: User,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.ordersService.findStoreSales(user.id, paginationDto);
+  }
+
   @Get()
   @Roles('admin')
   @ApiOperation({ summary: 'Listar todas las órdenes (admin)' })

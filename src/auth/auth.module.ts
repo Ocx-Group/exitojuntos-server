@@ -13,13 +13,15 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Country } from './entities/country.entity';
-import { EmailModule } from '../email/email.module';
+import { EmailModule } from '../email';
+import { StoresModule } from '../stores/stores.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, Country]),
     ConfigModule,
     PassportModule,
+    StoresModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       imports: [ConfigModule],

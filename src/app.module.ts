@@ -13,6 +13,7 @@ import { LogsModule } from './logs';
 import { TestimonialsModule } from './testimonials';
 import { StorageModule } from './storage/storage.module';
 import { ProductsModule } from './products/products.module';
+import { StoresModule } from './stores/stores.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -72,6 +73,7 @@ const envFilePath = process.env.NODE_ENV
     TestimonialsModule,
     StorageModule,
     ProductsModule,
+    StoresModule,
     CartModule,
     OrdersModule,
     TransactionsModule,

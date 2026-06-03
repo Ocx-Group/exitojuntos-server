@@ -26,6 +26,10 @@ export class Cart {
   @Column({ type: 'varchar', length: 20, default: 'active' })
   status!: CartStatus;
 
+  @Index('idx_cart_store')
+  @Column({ name: 'store_id', type: 'int', nullable: true })
+  storeId!: number | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 

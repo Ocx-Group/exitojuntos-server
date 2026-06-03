@@ -30,11 +30,15 @@ describe('CartService', () => {
     const productsService = {
       findOne: jest.fn(),
     };
+    const storesService = {
+      resolveStoreIdByToken: jest.fn(async () => null),
+    };
 
     const service = new CartService(
       cartRepository as any,
       cartItemRepository as any,
       productsService as any,
+      storesService as any,
     );
 
     return { service, cartRepository, cartItemRepository };

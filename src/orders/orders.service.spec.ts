@@ -45,10 +45,15 @@ describe('OrdersService', () => {
       abandonCart: jest.fn(async () => undefined),
     };
 
+    const storesService = {
+      getOwnerUserId: jest.fn(async () => null),
+    };
+
     const service = new OrdersService(
       orderRepository as any,
       {} as any,
       cartService as any,
+      storesService as any,
       dataSource as any,
     );
 
