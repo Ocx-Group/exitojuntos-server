@@ -56,6 +56,40 @@ export class StorageController {
     @UploadedFile() file: Express.Multer.File,
     @Query('folder') folder = 'products',
   ): Promise<{ url: string }> {
+    return this.validateAndUpload(file, folder);
+  }
+
+  @Post('store-asset')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Subir logo/banner de la tienda (usuario autenticado)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_FILE_SIZE_BYTES },
+    }),
+  )
+  async uploadStoreAsset(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    // Carpeta fija: cualquier usuario solo puede subir activos de tienda.
+    return this.validateAndUpload(file, 'stores');
+  }
+
+  private async validateAndUpload(
+    file: Express.Multer.File,
+    folder: string,
+  ): Promise<{ url: string }> {
     if (!file) {
       throw new BadRequestException('No se recibió ningún archivo');
     }
