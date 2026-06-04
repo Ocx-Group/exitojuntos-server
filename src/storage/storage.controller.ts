@@ -86,6 +86,33 @@ export class StorageController {
     return this.validateAndUpload(file, 'stores');
   }
 
+  @Post('profile-photo')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Subir foto de perfil (usuario autenticado)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_FILE_SIZE_BYTES },
+    }),
+  )
+  async uploadProfilePhoto(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    // Carpeta fija: cualquier usuario solo puede subir su foto de perfil.
+    return this.validateAndUpload(file, 'profiles');
+  }
+
   private async validateAndUpload(
     file: Express.Multer.File,
     folder: string,
