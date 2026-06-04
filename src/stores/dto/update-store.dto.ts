@@ -36,6 +36,19 @@ export class UpdateStoreDto {
   @IsUrl()
   bannerUrl?: string;
 
+  @ApiPropertyOptional({ example: 'https://higo.com/mi-tienda' })
+  @IsOptional()
+  // Cadena vacía = limpiar el enlace; solo validamos URL si hay valor.
+  @ValidateIf(o => o.externalUrl !== '' && o.externalUrl != null)
+  @IsUrl({ require_protocol: true })
+  externalUrl?: string;
+
+  @ApiPropertyOptional({ example: 'Comprar en Higo' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  externalLabel?: string;
+
   @ApiPropertyOptional({ example: { primaryColor: '#0a7' } })
   @IsOptional()
   @IsObject()

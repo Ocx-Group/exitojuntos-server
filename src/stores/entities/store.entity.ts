@@ -38,6 +38,14 @@ export class Store {
   @Column({ name: 'banner_url', type: 'text', nullable: true })
   bannerUrl!: string | null;
 
+  // Enlace de compra externo global de la tienda (ej. su tienda en Higo).
+  @Column({ name: 'external_url', type: 'text', nullable: true })
+  externalUrl!: string | null;
+
+  // Texto del botón externo ("Comprar en Higo"). Genérico si falta.
+  @Column({ name: 'external_label', type: 'varchar', length: 60, nullable: true })
+  externalLabel!: string | null;
+
   @Column({ type: 'jsonb', nullable: true })
   theme!: Record<string, unknown> | null;
 

@@ -16,6 +16,7 @@ import { User } from '../auth/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { FeatureProductDto } from './dto/feature-product.dto';
+import { SetExternalEnabledDto } from './dto/set-external-enabled.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresService } from './stores.service';
 
@@ -56,6 +57,20 @@ export class StoresController {
   @ApiOperation({ summary: 'Destacar/promocionar un producto en mi tienda' })
   featureProduct(@GetUser() user: User, @Body() dto: FeatureProductDto) {
     return this.storesService.featureProduct(user.id, dto);
+  }
+
+  @Patch('me/products/:productId/external')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Activar/desactivar el botón externo en un producto',
+  })
+  setExternalEnabled(
+    @GetUser() user: User,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Body() dto: SetExternalEnabledDto,
+  ) {
+    return this.storesService.setExternalEnabled(user.id, productId, dto);
   }
 
   @Delete('me/products/:productId')

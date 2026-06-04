@@ -14,6 +14,7 @@ import {
 } from '../common/utils/pagination.util';
 import { Product } from '../products/entities/product.entity';
 import { FeatureProductDto } from './dto/feature-product.dto';
+import { SetExternalEnabledDto } from './dto/set-external-enabled.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoreProduct } from './entities/store-product.entity';
 import { Store } from './entities/store.entity';
@@ -21,6 +22,7 @@ import { Store } from './entities/store.entity';
 export interface StoreCatalogItem extends Product {
   featured: boolean;
   customPitch: string | null;
+  externalEnabled: boolean;
 }
 
 @Injectable()
@@ -143,15 +145,67 @@ export class StoresService {
     productId: number,
   ): Promise<void> {
     const store = await this.getMyStore(ownerUserId);
-    const result = await this.storeProductRepository.delete({
-      storeId: store.id,
-      productId,
+    const entry = await this.storeProductRepository.findOne({
+      where: { storeId: store.id, productId },
     });
-    if (!result.affected) {
+    if (!entry) {
       throw new NotFoundException(
         `El producto ${productId} no está destacado en tu tienda`,
       );
     }
+    // Si el producto tiene activado el botón externo, no borramos la fila:
+    // solo dejamos de destacarlo para no perder esa configuración.
+    if (entry.externalEnabled) {
+      entry.featured = false;
+      await this.storeProductRepository.save(entry);
+      return;
+    }
+    await this.storeProductRepository.delete({ id: entry.id });
+  }
+
+  /**
+   * Activa o desactiva el botón de compra externo para un producto en la
+   * tienda del usuario. El enlace/etiqueta son globales (Store.externalUrl);
+   * aquí solo se decide qué productos lo muestran. Crea la fila si no existe,
+   * sin forzar que el producto quede destacado.
+   */
+  async setExternalEnabled(
+    ownerUserId: number,
+    productId: number,
+    dto: SetExternalEnabledDto,
+  ): Promise<StoreProduct> {
+    const store = await this.getMyStore(ownerUserId);
+
+    const product = await this.productRepository.findOne({
+      where: { id: productId, deletedAt: IsNull() },
+    });
+    if (!product) {
+      throw new NotFoundException(`Producto ${productId} no encontrado`);
+    }
+
+    let entry = await this.storeProductRepository.findOne({
+      where: { storeId: store.id, productId },
+    });
+
+    if (entry) {
+      entry.externalEnabled = dto.enabled;
+      // Desactivar el botón en una fila no destacada y sin pitch deja basura:
+      // si ya no aporta nada, la eliminamos.
+      if (!dto.enabled && !entry.featured && !entry.customPitch) {
+        await this.storeProductRepository.delete({ id: entry.id });
+        return entry;
+      }
+    } else {
+      entry = this.storeProductRepository.create({
+        storeId: store.id,
+        productId,
+        featured: false,
+        sortOrder: 0,
+        externalEnabled: dto.enabled,
+      });
+    }
+
+    return this.storeProductRepository.save(entry);
   }
 
   // ─── Público (por token) ─────────────────────────────────────────
@@ -188,6 +242,7 @@ export class StoresService {
       )
       .addSelect('COALESCE(sp.featured, false)', 'sp_featured')
       .addSelect('sp.custom_pitch', 'sp_custom_pitch')
+      .addSelect('COALESCE(sp.external_enabled, false)', 'sp_external_enabled')
       .where('p.state = :state', { state: true })
       .andWhere('p.deleted_at IS NULL')
       .orderBy('COALESCE(sp.featured, false)', 'DESC')
@@ -202,10 +257,14 @@ export class StoresService {
       const rawRow = raw[index] as {
         sp_featured?: boolean | string;
         sp_custom_pitch?: string | null;
+        sp_external_enabled?: boolean | string;
       };
       return Object.assign(product, {
         featured: rawRow.sp_featured === true || rawRow.sp_featured === 'true',
         customPitch: rawRow.sp_custom_pitch ?? null,
+        externalEnabled:
+          rawRow.sp_external_enabled === true ||
+          rawRow.sp_external_enabled === 'true',
       });
     });
 

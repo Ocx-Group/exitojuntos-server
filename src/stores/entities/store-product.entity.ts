@@ -33,6 +33,11 @@ export class StoreProduct {
   @Column({ name: 'custom_pitch', type: 'text', nullable: true })
   customPitch!: string | null;
 
+  // Si TRUE, este producto muestra en el escaparate el botón hacia el enlace
+  // externo global de la tienda (Store.externalUrl).
+  @Column({ name: 'external_enabled', type: 'boolean', default: false })
+  externalEnabled!: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
